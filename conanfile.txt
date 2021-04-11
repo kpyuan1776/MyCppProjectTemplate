@@ -1,5 +1,6 @@
 [requires]
 celero/2.6.0
+cxxopts/2.2.1
 
 [generators]
 cmake

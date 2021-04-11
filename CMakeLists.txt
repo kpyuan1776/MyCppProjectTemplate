@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 
-set(PROJECT "MyCppProjectTemplate")
+set(PROJECT "MyCppToolingAndStuff")
 
 project("${PROJECT}_Project" VERSION 1.2.3 LANGUAGES CXX)
 
@@ -16,7 +16,7 @@ option(ENABLE_BENCHMARK "Enable Code Coverage build."   ON)
 
 # Cmake modules
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
-#build target to build docu is: make DoxygenDocumentation_docs 
+#build target to build docu is: make MyCppToolingAndStuff_docs 
 include(Documentation)
 if (ENABLE_TESTING OR ENABLE_COVERAGE)
     include(CTest)
@@ -39,7 +39,7 @@ set(TEST_MAIN       "${PROJECT}_unit_tests")
 set(COVERAGE_MAIN   "${PROJECT}_coverage")
 set(BENCHMARK_MAIN  "${PROJECT}_benchmarks")
 
-find_package(Boost COMPONENTS system filesystem program_options log regex REQUIRED)
+find_package(Boost COMPONENTS system filesystem program_options log regex serialization REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIR})
 add_definitions (-DBOOST_ALL_DYN_LINK)
