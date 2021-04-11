@@ -1,4 +1,4 @@
-set(TEST_SOURCES "test_mylib.cpp")
+set(TEST_SOURCES "test_mylib.cpp" "test_singleton.cpp")
 
 add_executable(${TEST_MAIN} ${TEST_SOURCES})
 
