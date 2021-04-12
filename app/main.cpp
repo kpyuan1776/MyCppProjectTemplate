@@ -17,6 +17,7 @@
 #include <boost/log/trivial.hpp>
 #include <boost/log/core.hpp>
 
+//DFS boost application
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/depth_first_search.hpp>
 #include <boost/range/irange.hpp>
@@ -24,6 +25,138 @@
 
 using namespace std;
 using namespace boost;
+
+
+enum class OutputFormat
+{
+    markdown,
+    html
+};
+
+struct ListStrategy
+{
+    virtual void start(ostringstream& oss) {}
+    virtual void add_list_item(ostringstream& oss, const string& item) = 0;
+    virtual void end(ostringstream& oss) {}
+};
+
+//low level details
+struct MarkdownListStrategy : ListStrategy
+{
+    void add_list_item(ostringstream& oss, const string& item) override
+    {
+        oss << "* " << item << "\n";
+    }
+
+};
+
+struct HtmlListStrategy : ListStrategy
+{
+    void start(ostringstream &oss) override
+    {
+        oss << "<ul>\n";
+    }
+
+    void add_list_item(ostringstream& oss, const string& item) override
+    {
+        oss << "   <li>" << item << "</li>\n";
+    }
+
+
+    void end(ostringstream &oss) override
+    {
+        oss << "</ul>\n";
+    }
+
+};
+
+//high level stuff
+struct TextProcessor
+{
+    void clear()
+    {
+        oss.str("");
+        oss.clear();
+    }
+
+    void append_list(const vector<string>& items)
+    {
+        list_strategy->start(oss);
+        for (auto& item : items)
+            list_strategy->add_list_item(oss, item);
+        list_strategy->end(oss);
+    }
+
+    void set_output_format(const OutputFormat& format)
+    {
+        switch(format)
+        {
+            case OutputFormat::markdown:
+                list_strategy = make_unique<MarkdownListStrategy>();
+                break;
+            case OutputFormat::html:
+                list_strategy = make_unique<HtmlListStrategy>();
+                break;
+        }
+    }
+
+    string str() const {return oss.str(); }
+
+  private:
+    ostringstream oss;
+    unique_ptr<ListStrategy> list_strategy;
+};
+
+
+class FloodFillExample
+{
+    void dfs(vector<vector<int>>& image, int sr, int sc, int newColor, int rows, int cols, int source)
+    {
+        if(sr<0 || sr>=rows || sc <0 || sc>=cols)
+            return;
+        else if(image[sr][sc]!=source)
+            return;
+
+        image[sr][sc] = newColor;
+
+        dfs(image,sr-1,sc,newColor,rows,cols,source);
+        dfs(image,sr+1,sc,newColor,rows,cols,source);
+        dfs(image,sr,sc-1,newColor,rows,cols,source);
+        dfs(image,sr,sc+1,newColor,rows,cols,source);
+    }
+
+  public:
+    FloodFillExample(){}
+
+    void floodFill(vector<vector<int>>& image, int sr, int sc, int newColor)
+    {
+        if(newColor==image[sr][sc])
+            return;
+        int rows = image.size();
+        int cols = image[0].size();
+        int source = image[sr][sc];
+        dfs(image,sr,sc,newColor,rows,cols,source);
+
+    }
+
+    void initializeImage(vector<vector<int>>& image, int rows, int cols)
+    {
+        for (int i=0; i<rows; i++)
+        {
+            for (int j=0; j<cols; j++)
+            {
+                if(i>=10 || j>=10 || i<200 || j< 500)
+                    image[i][j] = 1;
+                else
+                    image[i][j] = rand()%10 +1;
+            }
+        }
+    }
+
+
+};
+
+
 
 
 //https://www.boost.org/doc/libs/1_67_0/libs/graph/example/dfs-example.cpp
@@ -65,6 +198,33 @@ class dfs_time_visitor: public default_dfs_visitor
 
 int main()
 {
+
+    BOOST_LOG_TRIVIAL(info) << "start floodfill example";
+    int numrows = 30000; //mit 30000x30000 braucht er schon 4GB RAM
+    int numcols = 30000;
+    vector<vector<int>> img(numrows, vector<int>(numcols));
+    /*vector<vector<int>> img(numrows);
+    vector<vector<int>> res(numrows);
+    for(int i=0; i<numrows; i++)
+    {
+        img[i].resize(numcols);
+        res[i].resize(numcols);
+    }*/
+    FloodFillExample floodfill{};
+    floodfill.initializeImage(img, numrows, numcols);
+    //floodfill.floodFill(img, 10, 10, 5); //gives segmentation fault at rows,cols > 400
+    int rows = img.size();
+    int cols = img[0].size();
+    /*int ctr=0;
+        for (int i=0; i<15;i++)
+        {
+            for (int j=0; i<15;j++)
+            {
+                ctr = img[i][j];
+                cout << ctr << ', ';
+            }
+            cout << endl;
+        }*/
 
     BOOST_LOG_TRIVIAL(info) << "start boost DFS example";
     typedef adjacency_list<vecS, vecS, directedS> graph_t;
@@ -178,6 +338,18 @@ int main()
     cout << bar1->foo->name() << endl;
     cout << bar2->foo->name() << endl;
 
+    
+    //strategy pattern
+    BOOST_LOG_TRIVIAL(info) << "strategy pattern stuff";
+    vector<string> items{"foo", "bar", "baz"};
+    TextProcessor tp;
+    tp.set_output_format(OutputFormat::markdown);
+    tp.append_list(items);
+    cout << tp.str() << "\n";
+    tp.clear();
+    tp.set_output_format(OutputFormat::html);
+    tp.append_list(items);
+    cout << tp.str() << "\n";
 
     cout_hello_world();
     linalg::aliases::float3  somevector = print_linalg_vector();
