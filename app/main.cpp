@@ -5,6 +5,7 @@
 #include "my_lib.h"
 #include "html_lib.h"
 #include "di.h"
+#include "myIterator.h"
 #include <memory>
 
 /*
@@ -189,6 +190,28 @@ class dfs_time_visitor: public default_dfs_visitor
     T& m_time;
 };
 
+
+void checkCppCopyIf(const vector<string>& owners, const vector<string>& pets)
+{
+    auto dog_owners = vector<string>{};
+
+    copy_if(
+        owners.cbegin(),
+        owners.cend(),
+        back_inserter(dog_owners),
+        [pet = pets.cbegin()](auto const& owner) mutable { //mark lambda mutable and capture an iterator into pets vector, incrementing it to check if animal is dog
+            return *pet++ == "Dog"; //check some lambda stuff: https://docs.microsoft.com/en-us/cpp/cpp/lambda-expressions-in-cpp?view=msvc-160auto const owners = vector<string>{"Ashwin", "Leslay", "sarah"};
+        }
+    );
+
+    cout << "dog owners: " << endl;
+    for (const auto& downer : dog_owners)
+    {
+        cout << downer << ", ";
+    }
+    cout << endl;
+}
+
 //add some flood fill stuff
 //or a variation like finding the max number of connected boxes
 // recursive (disadvantage it uses stackspace -> stack overflow)
@@ -350,6 +373,51 @@ int main()
     tp.set_output_format(OutputFormat::html);
     tp.append_list(items);
     cout << tp.str() << "\n";
+
+
+
+    //iterators
+    vector<string> names {"John", "jane", "jill", "jack"};
+    vector<string>::iterator it = names.begin();
+    cout << "first name is " << *it << endl;
+
+    ++it;
+    it->append(string(" goodall"));
+    cout << "second name is " << *it << endl;
+
+    while(++it !=names.end())
+    {
+        cout << "another name: " << *it << endl;
+    }
+
+    for (auto ri = names.rbegin(); ri !=names.rend(); ++ri) //rbegin begins on the last element
+    {
+        cout << *ri;
+        if (ri+1 != names.rend())
+            cout << ", ";
+    }
+    cout << endl;
+    BinaryTree<string> family {
+        new Node<string>{"me",
+                        new Node<string>{"mother",
+                                    new Node<string>{"mother's mother"},
+                                    new Node<string>{"mother's father"}
+                        },
+                        new Node<string>{"father"}
+        }
+    };
+
+    for(auto it = family.begin(); it !=family.end(); ++it)
+    {
+        cout << (*it).value << "\n";
+    }
+    cout << "iterator stuff finished ...." << endl;
+
+    //some cpp arrays stuff
+    auto const owners = vector<string>{"Ashwin", "Leslay", "sarah"};
+    auto const pets = vector<string>{"Dog", "Cat", "Dog"};
+    checkCppCopyIf(owners, pets);
+
 
     cout_hello_world();
     linalg::aliases::float3  somevector = print_linalg_vector();

@@ -8,7 +8,7 @@
 
 using namespace std;
 
-class HtmlBuilder;
+class HtmlBuilder; //cpp forward declaration
 
 struct HtmlElement
 {
